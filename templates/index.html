@@ -4,22 +4,127 @@
 <title>AI Biodiversity Analyzer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{font-family:Arial;background:linear-gradient(135deg,#4CAF50,#2E7D32);height:100vh;margin:0;display:flex;justify-content:center;align-items:center;}
-.container{background:white;padding:40px;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.2);text-align:center;width:520px;}
-h1{color:#2E7D32;}
-input[type=file]{margin-top:20px;}
-button{margin-top:20px;padding:10px 20px;background:#2E7D32;color:white;border:none;border-radius:5px;font-size:16px;cursor:pointer;}
-button:hover{background:#1B5E20;}
-.result{margin-top:20px;padding:15px;background:#E8F5E9;border-radius:8px;}
-img{margin-top:20px;max-width:260px;border-radius:8px;}
-canvas{margin-top:30px;}
-.stat{margin-top:10px;font-size:14px;color:#444;}
-.footer{margin-top:20px;font-size:13px;color:#777;}
+body{
+font-family:Segoe UI;
+background:linear-gradient(120deg,#1e3c72,#2a5298);
+margin:0;
+padding:40px 0;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+color:#333;
+}
+.container{
+background:white;
+padding:40px;
+border-radius:15px;
+box-shadow:0 15px 40px rgba(0,0,0,0.3);
+text-align:center;
+width:700px;
+}
+h1{
+color:#1e3c72;
+margin-bottom:5px;
+}
+p{
+color:#555;
+margin-top:0;
+}
+input[type=file]{
+margin-top:20px;
+padding:8px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+button{
+margin-top:20px;
+padding:12px 26px;
+background:linear-gradient(135deg,#00c853,#2e7d32);
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+transition:0.3s;
+}
+button:hover{
+transform:scale(1.05);
+}
+
+img{
+margin-top:20px;
+max-width:280px;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+.result{
+margin-top:25px;
+padding:20px;
+background:#f1f8ff;
+border-left:5px solid #1e88e5;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+.stat{
+margin-top:8px;
+font-size:14px;
+color:#444;
+}
+.progress-container{
+background:#ddd;
+border-radius:10px;
+height:20px;
+margin-top:10px;
+overflow:hidden;
+}
+.progress-bar{
+height:100%;
+background:#4CAF50;
+text-align:center;
+color:white;
+font-size:12px;
+}
+.pipeline{
+background:#e3f2fd;
+margin:6px;
+padding:8px;
+border-radius:6px;
+font-size:14px;
+text-align:left;
+}
+canvas{
+margin-top:30px;
+}
+.chart-box{
+width:350px;
+margin:auto;
+}
+table{
+margin-top:25px;
+width:100%;
+border-collapse:collapse;
+}
+table th{
+background:#1e3c72;
+color:white;
+padding:8px;
+}
+table td{
+border:1px solid #ddd;
+padding:8px;
+}
+.footer{
+margin-top:30px;
+font-size:13px;
+color:#777;
+border-top:1px solid #eee;
+padding-top:10px;
+}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>AI Biodiversity Analyzer</h1>
+<h1>🌿 AI Biodiversity Analyzer</h1>
 <p>Upload wildlife image for AI species detection</p>
 <form method="post" enctype="multipart/form-data">
 <input type="file" name="image" required>
@@ -32,24 +137,85 @@ canvas{margin-top:30px;}
 <h3>Detection Result</h3>
 <p><b>Species:</b> {{ species }}</p>
 <p><b>Confidence:</b> {{ confidence }}</p>
+<div class="progress-container">
+<div class="progress-bar" style="width: {{ confidence*100 }}%">
+{{ (confidence*100)|round(2) }}%
+</div>
+</div>
 <p class="stat"><b>Detection Time:</b> {{ now }}</p>
 <p class="stat"><b>Total Species Monitored:</b> {{ stats|length }}</p>
+</div>
+<div class="result">
+<h3>AI Processing Pipeline</h3>
+<div class="pipeline">✔ Image Uploaded</div>
+<div class="pipeline">✔ Image Preprocessing</div>
+<div class="pipeline">✔ Deep Learning Model Analysis</div>
+<div class="pipeline">✔ Species Classification</div>
+<div class="pipeline">✔ Biodiversity Database Updated</div>
 </div>
 {% endif %}
 <h3>Biodiversity Statistics</h3>
 <canvas id="speciesChart"></canvas>
+<h3>Species Distribution</h3>
+<div class="chart-box">
+<canvas id="pieChart"></canvas>
+</div>
+<h3>Detection History</h3>
+<table>
+<tr>
+<th>Species</th>
+<th>Count</th>
+</tr>
+{% for key,value in stats.items() %}
+<tr>
+<td>{{ key }}</td>
+<td>{{ value }}</td>
+</tr>
+{% endfor %}
+</table>
 <script>
 var labels={{ stats.keys()|list|tojson }};
 var values={{ stats.values()|list|tojson }};
 var ctx=document.getElementById('speciesChart').getContext('2d');
-var chart=new Chart(ctx,{
+new Chart(ctx,{
 type:'bar',
 data:{
 labels:labels,
 datasets:[{
 label:'Detected Species Count',
 data:values,
-backgroundColor:'#4CAF50'
+backgroundColor:[
+'#43a047',
+'#1e88e5',
+'#f4511e',
+'#8e24aa',
+'#ffb300',
+'#00acc1',
+'#d81b60'
+]
+}]
+},
+options:{
+responsive:true,
+scales:{y:{beginAtZero:true}}
+}
+});
+var pie=document.getElementById('pieChart').getContext('2d');
+new Chart(pie,{
+type:'pie',
+data:{
+labels:labels,
+datasets:[{
+data:values,
+backgroundColor:[
+'#43a047',
+'#1e88e5',
+'#f4511e',
+'#8e24aa',
+'#ffb300',
+'#00acc1',
+'#d81b60'
+]
 }]
 },
 options:{responsive:true}
